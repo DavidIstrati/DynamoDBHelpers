@@ -1,9 +1,7 @@
 import boto3
-from boto3.dynamodb.conditions import Key
 import os
-import json
 
-ddb = boto3.client('dynamodb', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name='us-east-1')
+ddb = boto3.client('dynamodb', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_REGION'])
 
 # ========================================================
 # + GENERAL DYNAMODB FUNCTIONS
@@ -13,12 +11,13 @@ ddb = boto3.client('dynamodb', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID']
 
 
 dynamoTables = {
+    # Example
     'users': {'partitionKey': 'userId'},
     'listings': {'partitionKey': 'userId', 'sortKey': 'listingId'},
-    'likes': {'partitionKey': 'userId', 'sortKey': 'listingId'},
 }
 
 IndexNames = {
+    # Example
     'listings': {
         'category-index': {'partitionKey': 'category'},
     },
@@ -68,7 +67,7 @@ def getItemDDB(partitionKey, sortKey, TableName):
             )['Item']
             return True, Item 
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
 
 # ========================================================
 #       - Query ( O(nlogn) get a collection of items that match a pertition key )
@@ -86,7 +85,7 @@ def queryDDB(partitionKey, TableName):
             }
         )['Items']
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
 
 # ========================================================
 #       - Query Global Secondary Index with Filter
@@ -107,7 +106,7 @@ def searchWithCategory(partitionKey, filterTerm, filterCol, IndexName, TableName
             }
         )['Items']
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
 
 # ========================================================
 #       - Batch Write Item ( write items to dynamo )
@@ -119,7 +118,7 @@ def batchWriteDDB(Items, TableName):
         return True, ddb.batch_write_item(RequestItems={
             TableName: Items})
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
 
 
 # ========================================================
@@ -134,7 +133,7 @@ def putDDB(item, TableName):
             Item=item
         )
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
 
 # ========================================================
 #       - Update ( change current values of an item, if the item doesn't exist, it will create a new one )
@@ -166,7 +165,7 @@ def updateDDB(partitionKey, sortKey, updateExpression, updateNames, updateParame
                 ReturnValues="UPDATED_NEW"
             )
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
 
 
 # ========================================================
@@ -181,4 +180,4 @@ def deleteDDB(partitionKey, sortKey, TableName):
                                           Key={partitionKeyName: {'S': partitionKey},
                                                sortKeyName: {'S': sortKey}})
     except Exception as e:
-        return False, [str(e), "python - dynamodb"]
+        return False, str(e)
